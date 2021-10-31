@@ -15,6 +15,16 @@
 module memory2
 	#(parameter MEMORY_FILE = 0)
 	(
+`ifdef USE_POWER_PINS
+	inout vdda1,        // User area 1 3.3V supply
+	inout vdda2,        // User area 2 3.3V supply
+	inout vssa1,        // User area 1 analog ground
+	inout vssa2,        // User area 2 analog ground
+	inout vccd1,        // User area 1 1.8V supply
+	inout vccd2,        // User area 2 1.8v supply
+	inout vssd1,        // User area 1 digital ground
+	inout vssd2,        // User area 2 digital ground
+`endif
 	input clk,
 	input reset,
 	input we,
@@ -32,7 +42,7 @@ module memory2
 	wire[19:0] addr_output_mem;
 	wire[7:0] first_bit_out_current;
 	reg[7:0] first_bit_out_previous;
-	reg[31:0] auxiliar_mem_out;
+	wire[31:0] auxiliar_mem_out;
 
 	reg[$clog2(5):0] cycles;
 	
@@ -100,10 +110,15 @@ module memory2
 	
 
 	sram_32_32_sky130 CPURAM(
+		`ifdef USE_POWER_PINS
+		.vccd1(vccd1),
+		.vssd1(vssd1),
+		`endif
 		.clk0(clk),
 		.csb0(1'b0),
 		.web0(!we),
-		.addr0(addr_to_sram),
+		.spare_wen0(1'b0),
+		.addr0(addr_to_sram[5:0]),
 		.din0(data_to_sram), 
 		.dout0(auxiliar_mem_out)
 	);
